@@ -33,15 +33,15 @@ public class DBController {
                     + "LEFT OUTER JOIN mynumber_table ON staffmaster_table.id = mynumber_table.id "
                     + "ORDER BY staffmaster_table.birth DESC";
     
-    private Connection con = null;
-    private PreparedStatement ps = null;
+   // private PreparedStatement ps = null;
     
     public DBController() {
         
     }
     
-    public void connectDataBase() {
+    public Connection connectDataBase() {
         
+        Connection con = null;
         
         try {
             con = DriverManager.getConnection(url+"?useUnicode=true&characterEncoding="+serverencoding,user,password);
@@ -53,6 +53,8 @@ public class DBController {
             
             closeConnection(con);
         }
+        
+        return con;
     }
     
     public void joinTable() {
@@ -60,7 +62,7 @@ public class DBController {
         Statement stmt = null;
         ResultSet rs = null;
         
-        connectDataBase();
+        Connection con = connectDataBase();
         
         try {
             stmt = con.createStatement();
@@ -88,10 +90,11 @@ public class DBController {
     
     public void search(String gender, int age) {
         
+        PreparedStatement ps = null;
         ResultSet rs = null;
         
         // 接続
-        connectDataBase();
+        Connection con = connectDataBase();
                 
         try {
             
@@ -115,6 +118,8 @@ public class DBController {
         } finally {
             // クローズ
             closeResultSet(rs);
+            closePreparedStatement(ps);
+            closeConnection(con);
         }
     }
     
@@ -134,6 +139,17 @@ public class DBController {
         if (stmt != null) {
             try {
                 stmt.close();
+            } catch (SQLException ex) {
+                out.println(ex.getMessage());
+            }
+        }
+    }
+    
+    private void closePreparedStatement(PreparedStatement ps) {
+        
+        if (ps != null) {
+            try {
+                ps.close();
             } catch (SQLException ex) {
                 out.println(ex.getMessage());
             }

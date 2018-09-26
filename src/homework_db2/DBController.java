@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -19,49 +21,133 @@ import java.sql.Statement;
  */
 public class DBController {
     
+    String servername     = "localhost:3306";
+    String databasename   = "mynumberdb";
+    String user = "TakafumiSato";
+    String password = "1234567";
+    String serverencoding = "UTF-8";
+    String url =  "jdbc:mysql://"+servername+"/" + databasename;
+    String sql_SELECT_staffMyNumber = "SELECT staffmaster_table.id,name,gender,DATE_FORMAT(staffmaster_table.birth,'%Y/%m/%d') as birth,IFNULL(myNumber,'') as myNumber,"
+                    + "TIMESTAMPDIFF(YEAR, staffmaster_table.birth, CURDATE()) as age "
+                    + "FROM staffmaster_table "
+                    + "LEFT OUTER JOIN mynumber_table ON staffmaster_table.id = mynumber_table.id "
+                    + "ORDER BY staffmaster_table.birth DESC";
+    
     private Connection con = null;
     private PreparedStatement ps = null;
     
     public DBController() {
         
-        connectDataBase();
     }
     
-    private void connectDataBase() {
+    public void connectDataBase() {
         
         
         try {
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/mynumberdb?useUnicode=true&characterEncoding=utf8","TakafumiSato","1234567");
+            con = DriverManager.getConnection(url+"?useUnicode=true&characterEncoding="+serverencoding,user,password);
             
             System.out.println("MySQLに接続しました。");
         } catch (SQLException se) {
             System.out.println("MySQLに接続できませんでした。");
-            System.out.println(se);
+            System.out.println(se.getMessage());
+            
+            closeConnection(con);
         }
     }
     
-    public void joinDataBase() {
+    public void joinTable() {
         
+        Statement stmt = null;
         ResultSet rs = null;
         
+        connectDataBase();
+        
         try {
-            Statement stmt = con.createStatement();
-            String sql = "SELECT staffmaster_table.id,name,gender,birth,myNumber,"
-                    + "TIMESTAMPDIFF(YEAR, staffmaster_table.birth, CURDATE()) as age "
-                    + "FROM staffmaster_table "
-                    + "LEFT OUTER JOIN mynumber_table ON staffmaster_table.id = mynumber_table.id "
-                    + "ORDER BY staffmaster_table.birth DESC";
+            stmt = con.createStatement();
+            String sql = sql_SELECT_staffMyNumber;
             rs = stmt.executeQuery(sql);
             out.println("従業員コード, 名前, 性別, 生年月日, 年齢, 個人番号");
             while (rs.next()) {
-                out.println("   " + rs.getString("id") + ",  " + rs.getString("name") + ", " + rs.getString("gender") + ", " + rs.getString("birth") + ",  " + rs.getString("age") + ", " + rs.getString("myNumber"));
+                out.println("   " + rs.getString("id") 
+                        + ",  " + rs.getString("name") 
+                        + ", " + rs.getString("gender") 
+                        + ", " + rs.getString("birth") 
+                        + ", " + rs.getString("age") 
+                        + ", " + rs.getString("myNumber"));
             }
-            
-            // クローズ
-            rs.close();
-            stmt.close();
+
         } catch (SQLException ex) {
             out.println("SQLException:" + ex.getMessage());
+        } finally {
+            // クローズ
+            closeResultSet(rs);
+            closeStatement(stmt);
+            closeConnection(con);
+        }
+    }
+    
+    public void search(String gender, int age) {
+        
+        ResultSet rs = null;
+        
+        // 接続
+        connectDataBase();
+                
+        try {
+            
+            ps = con.prepareStatement("SELECT * FROM (" + sql_SELECT_staffMyNumber + ") as staffMyNumber WHERE staffMyNumber.gender=? AND staffMyNumber.age>=? ORDER BY staffMyNumber.age ASC");
+
+            ps.setString(1,gender);
+            ps.setString(2, String.valueOf(age));
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                out.println("   " + rs.getString("id") 
+                        + ",  " + rs.getString("name") 
+                        + ", " + rs.getString("gender") 
+                        + ", " + rs.getString("birth") 
+                        + ", " + rs.getString("age") 
+                        + ", " + rs.getString("myNumber"));
+            }
+            
+        } catch (SQLException ex) {  
+            out.println("SQLException:" + ex.getMessage());
+        } finally {
+            // クローズ
+            closeResultSet(rs);
+        }
+    }
+    
+    private void closeConnection(Connection con) {
+        
+        if (con != null) {
+            try {
+                con.close();
+            } catch (SQLException ex) {
+                out.println(ex.getMessage());
+            }
+        }
+    }
+    
+    private void closeStatement(Statement stmt) {
+        
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException ex) {
+                out.println(ex.getMessage());
+            }
+        }
+    }
+    
+    private void closeResultSet(ResultSet rs) {
+        
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException ex) {
+                out.println(ex.getMessage());
+            }
         }
     }
 }

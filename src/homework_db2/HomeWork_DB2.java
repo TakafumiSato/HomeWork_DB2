@@ -18,6 +18,10 @@ public class HomeWork_DB2 {
      */
     public static void main(String[] args) {
         
-        dbController.joinDataBase();
+        // テーブルマージ出力
+        dbController.joinTable();
+        
+        // 性別と年齢で検索
+        dbController.search("男", 31);
     }
 }

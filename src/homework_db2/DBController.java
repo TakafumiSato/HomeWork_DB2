@@ -98,7 +98,9 @@ public class DBController {
                 
         try {
             
-            ps = con.prepareStatement("SELECT * FROM (" + sql_SELECT_staffMyNumber + ") as staffMyNumber WHERE staffMyNumber.gender=? AND staffMyNumber.age>=? ORDER BY staffMyNumber.age ASC");
+            ps = con.prepareStatement("SELECT * FROM (" + sql_SELECT_staffMyNumber + ") as staffMyNumber"
+                    + " WHERE staffMyNumber.gender=? AND staffMyNumber.age>=? "
+                    + "ORDER BY staffMyNumber.age ASC");
 
             ps.setString(1,gender);
             ps.setString(2, String.valueOf(age));

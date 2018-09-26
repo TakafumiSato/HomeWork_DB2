@@ -125,6 +125,42 @@ public class DBController {
         }
     }
     
+    public void searchName(String text) {
+
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        
+        // 接続
+        Connection con = connectDataBase();
+                
+        try {
+            
+            ps = con.prepareStatement("SELECT * FROM (" + sql_SELECT_staffMyNumber + ") as staffMyNumber"
+                    + " WHERE staffMyNumber.name LIKE ? "
+                    + "ORDER BY staffMyNumber.age ASC");
+
+            ps.setString(1,"%"+text+"%");
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                out.println("   " + rs.getString("id") 
+                        + ",  " + rs.getString("name") 
+                        + ", " + rs.getString("gender") 
+                        + ", " + rs.getString("birth") 
+                        + ", " + rs.getString("age") 
+                        + ", " + rs.getString("myNumber"));
+            }
+            
+        } catch (SQLException ex) {  
+            out.println("SQLException:" + ex.getMessage());
+        } finally {
+            // クローズ
+            closeResultSet(rs);
+            closePreparedStatement(ps);
+            closeConnection(con);
+        }
+    }
+    
     private void closeConnection(Connection con) {
         
         if (con != null) {

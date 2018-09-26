@@ -23,5 +23,8 @@ public class HomeWork_DB2 {
         
         // 性別と年齢で検索
         dbController.search("男", 31);
+        
+        // 名前の一部から検索
+        dbController.searchName("三");
     }
 }

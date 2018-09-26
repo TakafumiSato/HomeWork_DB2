@@ -90,7 +90,7 @@ public class DBController {
     
     public void search(String gender, int age) {
         
-        out.println("性別と年齢で検索");
+        out.println("性別と年齢で検索("+gender+","+age+"歳以上)");
         
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -129,7 +129,7 @@ public class DBController {
     
     public void searchName(String text) {
 
-        out.println("名前の一部からで検索");
+        out.println("名前の一部からで検索(\""+text+"\"の文字列)");
         
         PreparedStatement ps = null;
         ResultSet rs = null;

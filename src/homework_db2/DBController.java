@@ -27,11 +27,17 @@ public class DBController {
     String password = "1234567";
     String serverencoding = "UTF-8";
     String url =  "jdbc:mysql://"+servername+"/" + databasename;
-    String sql_SELECT_staffMyNumber = "SELECT staffmaster_table.id,name,gender,DATE_FORMAT(staffmaster_table.birth,'%Y/%m/%d') as birth,IFNULL(myNumber,'') as myNumber,"
+    String sql_joinTable = "SELECT staffmaster_table.id,name,gender,DATE_FORMAT(staffmaster_table.birth,'%Y/%m/%d') as birth,IFNULL(myNumber,'') as myNumber,"
                     + "TIMESTAMPDIFF(YEAR, staffmaster_table.birth, CURDATE()) as age "
                     + "FROM staffmaster_table "
                     + "LEFT OUTER JOIN mynumber_table ON staffmaster_table.id = mynumber_table.id "
                     + "ORDER BY staffmaster_table.birth DESC";
+    String sql_search = "SELECT * FROM (" + sql_joinTable + ") as staffMyNumber"
+                    + " WHERE staffMyNumber.gender=? AND staffMyNumber.age>=? "
+                    + "ORDER BY staffMyNumber.age ASC";
+    String sql_searchName = "SELECT * FROM (" + sql_joinTable + ") as staffMyNumber"
+                    + " WHERE staffMyNumber.name LIKE ? "
+                    + "ORDER BY staffMyNumber.age ASC";
     
    // private PreparedStatement ps = null;
     
@@ -66,7 +72,7 @@ public class DBController {
         
         try {
             stmt = con.createStatement();
-            String sql = sql_SELECT_staffMyNumber;
+            String sql = sql_joinTable;
             rs = stmt.executeQuery(sql);
             out.println("従業員コード, 名前, 性別, 生年月日, 年齢, 個人番号");
             while (rs.next()) {
@@ -100,9 +106,7 @@ public class DBController {
                 
         try {
             
-            ps = con.prepareStatement("SELECT * FROM (" + sql_SELECT_staffMyNumber + ") as staffMyNumber"
-                    + " WHERE staffMyNumber.gender=? AND staffMyNumber.age>=? "
-                    + "ORDER BY staffMyNumber.age ASC");
+            ps = con.prepareStatement(sql_search);
 
             ps.setString(1,gender);
             ps.setString(2, String.valueOf(age));
@@ -139,9 +143,7 @@ public class DBController {
                 
         try {
             
-            ps = con.prepareStatement("SELECT * FROM (" + sql_SELECT_staffMyNumber + ") as staffMyNumber"
-                    + " WHERE staffMyNumber.name LIKE ? "
-                    + "ORDER BY staffMyNumber.age ASC");
+            ps = con.prepareStatement(sql_searchName);
 
             ps.setString(1,"%"+text+"%");
             rs = ps.executeQuery();
